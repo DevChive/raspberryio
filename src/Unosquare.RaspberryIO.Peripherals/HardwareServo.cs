@@ -3,7 +3,7 @@
     using Gpio;
     using System;
     using System.Linq;
-    using Unosquare.Swan;
+    using Swan;
 
     /// <summary>
     /// Represents a standard 50hz pulse-controlled servo using Hardware-assited PWM.
@@ -15,7 +15,7 @@
         /// Initializes a new instance of the <see cref="HardwareServo"/> class.
         /// </summary>
         /// <param name="outputPin">The output pin.</param>
-        /// <exception cref="ArgumentException">Pin does not support PWM - outputPin</exception>
+        /// <exception cref="ArgumentException">Pin does not support PWM - outputPin.</exception>
         public HardwareServo(GpioPin outputPin)
         {
             if (outputPin == null || outputPin.Capabilities.Contains(PinCapability.PWM) == false)
@@ -31,7 +31,7 @@
             OutputPin.PwmRange = 4000;
             OutputPin.PwmRegister = 0;
 
-            Frequency = (double)Pi.Gpio.PwmBaseFrequency / OutputPin.PwmClockDivisor / OutputPin.PwmRange;
+            Frequency = (double) Pi.Gpio.PwmBaseFrequency / OutputPin.PwmClockDivisor / OutputPin.PwmRange;
             PeriodMs = 1d / Frequency * 1000;
             MaxPulseLengthMs = PeriodMs * 1024d / OutputPin.PwmRange;
             PulseLengthMs = 1.0d; // default is 1ms pulses
@@ -62,10 +62,7 @@
         /// </summary>
         public double PulseLengthMs
         {
-            get
-            {
-                return PeriodMs * OutputPin.PwmRegister.Clamp(0, 1024) / OutputPin.PwmRange;
-            }
+            get => PeriodMs * OutputPin.PwmRegister.Clamp(0, 1024) / OutputPin.PwmRange;
             set
             {
                 value = value.Clamp(0, MaxPulseLengthMs);
@@ -79,7 +76,7 @@
         /// </summary>
         /// <param name="pulseLengthMin">The pulse length minimum.</param>
         /// <param name="pulseLengthMax">The pulse length maximum.</param>
-        /// <returns>The angle in degrees</returns>
+        /// <returns>The angle in degrees.</returns>
         public double ComputeAngle(double pulseLengthMin, double pulseLengthMax)
         {
             var currentPulse = PulseLengthMs.Clamp(pulseLengthMin, pulseLengthMax) - pulseLengthMin;
@@ -88,16 +85,14 @@
         }
 
         /// <summary>
-        /// Computes the pulse length in milliseconds for the given angle (from 0 to 180)
+        /// Computes the pulse length in milliseconds for the given angle (from 0 to 180).
         /// </summary>
         /// <param name="angle">The angle.</param>
         /// <param name="pulseLengthMin">The pulse length minimum.</param>
         /// <param name="pulseLengthMax">The pulse length maximum.</param>
-        /// <returns>The pulse length in milliseconds for the given angle (from 0 to 180)</returns>
-        public double ComputePulseLength(double angle, double pulseLengthMin, double pulseLengthMax)
-        {
-            return (angle.Clamp(0, 180) / 180 * (pulseLengthMax - pulseLengthMin)) + pulseLengthMin;
-        }
+        /// <returns>The pulse length in milliseconds for the given angle (from 0 to 180).</returns>
+        public double ComputePulseLength(double angle, double pulseLengthMin, double pulseLengthMax) =>
+            (angle.Clamp(0, 180) / 180 * (pulseLengthMax - pulseLengthMin)) + pulseLengthMin;
 
         /// <summary>
         /// Returns a <see cref="string" /> that represents this instance.
@@ -105,9 +100,7 @@
         /// <returns>
         /// A <see cref="string" /> that represents this instance.
         /// </returns>
-        public override string ToString()
-        {
-            return $"Period: {PeriodMs,6:0.00} ms. | Frequency {Frequency,6:0.000} Hz. | Pulse Length: {PulseLengthMs,8:0.000} ms.";
-        }
+        public override string ToString() =>
+            $"Period: {PeriodMs,6:0.00} ms. | Frequency {Frequency,6:0.000} Hz. | Pulse Length: {PulseLengthMs,8:0.000} ms.";
     }
 }

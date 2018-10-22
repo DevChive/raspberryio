@@ -10,7 +10,7 @@
     using System.Reflection;
 
     /// <summary>
-    /// http://raspberry-pi-guide.readthedocs.io/en/latest/system.html
+    /// http://raspberry-pi-guide.readthedocs.io/en/latest/system.html.
     /// </summary>
     public sealed class SystemInfo : SingletonBase<SystemInfo>
     {
@@ -20,12 +20,11 @@
         private static readonly StringComparer StringComparer = StringComparer.InvariantCultureIgnoreCase;
 
         private static readonly object SyncRoot = new object();
-        private static bool? _isRunningAsRoot = default;
 
         /// <summary>
         /// Prevents a default instance of the <see cref="SystemInfo"/> class from being created.
         /// </summary>
-        /// <exception cref="NotSupportedException">Could not initialize the GPIO controller</exception>
+        /// <exception cref="NotSupportedException">Could not initialize the GPIO controller.</exception>
         private SystemInfo()
         {
             #region Obtain and format a property dictionary
@@ -114,7 +113,7 @@
                         Revision.ToUpperInvariant(),
                         NumberStyles.HexNumber,
                         CultureInfo.InvariantCulture,
-                        out int boardVersion))
+                        out var boardVersion))
                 {
                     RaspberryPiVersion = PiVersion.Unknown;
                     if (Enum.GetValues(typeof(PiVersion)).Cast<int>().Contains(boardVersion))
@@ -270,7 +269,7 @@
         public string Serial { get; private set; }
 
         /// <summary>
-        /// Gets the system uptime (in seconds).
+        /// Gets the system up-time (in seconds).
         /// </summary>
         public double Uptime
         {
@@ -298,36 +297,7 @@
         public TimeSpan UptimeTimeSpan => TimeSpan.FromSeconds(Uptime);
 
         /// <summary>
-        /// Gets a value indicating whether this program is running as Root
-        /// </summary>
-        /// <value>
-        /// <c>true</c> if this instance is running as root; otherwise, <c>false</c>.
-        /// </value>
-        public bool IsRunningAsRoot
-        {
-            get
-            {
-                lock (SyncRoot)
-                {
-                    if (_isRunningAsRoot.HasValue == false)
-                    {
-                        try
-                        {
-                            _isRunningAsRoot = Standard.GetUid() == 0;
-                        }
-                        catch
-                        {
-                            _isRunningAsRoot = false;
-                        }
-                    }
-
-                    return _isRunningAsRoot.Value;
-                }
-            }
-        }
-
-        /// <summary>
-        /// Placeholder for processor index
+        /// Placeholder for processor index.
         /// </summary>
         private string Processor { get; set; }
 
@@ -348,7 +318,7 @@
                                 p.PropertyType == typeof(TimeSpan)))
                 .ToArray();
 
-            var properyValues = new List<string>
+            var propertyValues2 = new List<string>
             {
                 "System Information",
                 $"\t{nameof(WiringPiVersion),-22}: {WiringPiVersion}",
@@ -359,16 +329,16 @@
             {
                 if (property.PropertyType != typeof(string[]))
                 {
-                    properyValues.Add($"\t{property.Name,-22}: {property.GetValue(this)}");
+                    propertyValues2.Add($"\t{property.Name,-22}: {property.GetValue(this)}");
                 }
                 else if (property.GetValue(this) is string[] allValues)
                 {
                     var concatValues = string.Join(" ", allValues);
-                    properyValues.Add($"\t{property.Name,-22}: {concatValues}");
+                    propertyValues2.Add($"\t{property.Name,-22}: {concatValues}");
                 }
             }
 
-            return string.Join(Environment.NewLine, properyValues.ToArray());
+            return string.Join(Environment.NewLine, propertyValues2.ToArray());
         }
     }
 }

@@ -11,7 +11,7 @@
     using System.Text;
 
     /// <summary>
-    /// Represents the network information
+    /// Represents the network information.
     /// </summary>
     public class NetworkSettings : SingletonBase<NetworkSettings>
     {
@@ -26,17 +26,14 @@
         /// Retrieves the wireless networks.
         /// </summary>
         /// <param name="adapter">The adapter.</param>
-        /// <returns>A list of WiFi networks</returns>
-        public List<WirelessNetworkInfo> RetrieveWirelessNetworks(string adapter)
-        {
-            return RetrieveWirelessNetworks(new[] { adapter });
-        }
+        /// <returns>A list of WiFi networks.</returns>
+        public List<WirelessNetworkInfo> RetrieveWirelessNetworks(string adapter) => RetrieveWirelessNetworks(new[] { adapter });
 
         /// <summary>
         /// Retrieves the wireless networks.
         /// </summary>
         /// <param name="adapters">The adapters.</param>
-        /// <returns>A list of WiFi networks</returns>
+        /// <returns>A list of WiFi networks.</returns>
         public List<WirelessNetworkInfo> RetrieveWirelessNetworks(string[] adapters = null)
         {
             var result = new List<WirelessNetworkInfo>();
@@ -134,8 +131,8 @@
         /// <returns>A list of network adapters.</returns>
         public List<NetworkAdapterInfo> RetrieveAdapters()
         {
-            const string HWaddr = "HWaddr ";
-            const string Ether = "ether ";
+            const string hWaddr = "HWaddr ";
+            const string ether = "ether ";
 
             var result = new List<NetworkAdapterInfo>();
             var interfacesOutput = ProcessRunner.GetProcessOutputAsync("ifconfig").Result;
@@ -155,16 +152,16 @@
                 if (char.IsLetterOrDigit(line[0]) == false)
                     continue;
 
-                // Read the line as an adatper
+                // Read the line as an adapter
                 var adapter = new NetworkAdapterInfo
                 {
-                    Name = line.Substring(0, line.IndexOf(' ')).TrimEnd(':')
+                    Name = line.Substring(0, line.IndexOf(' ')).TrimEnd(':'),
                 };
 
                 // Parse the MAC address in old version of ifconfig; it comes in the first line
-                if (line.IndexOf(HWaddr) >= 0)
+                if (line.IndexOf(hWaddr) >= 0)
                 {
-                    var startIndexHwd = line.IndexOf(HWaddr) + HWaddr.Length;
+                    var startIndexHwd = line.IndexOf(hWaddr) + hWaddr.Length;
                     adapter.MacAddress = line.Substring(startIndexHwd, 17).Trim();
                 }
 
@@ -182,9 +179,9 @@
                     }
 
                     // Parse the MAC address in new versions of ifconfig; it no longer comes in the first line
-                    if (indentedLine.IndexOf(Ether) >= 0 && string.IsNullOrWhiteSpace(adapter.MacAddress))
+                    if (indentedLine.IndexOf(ether) >= 0 && string.IsNullOrWhiteSpace(adapter.MacAddress))
                     {
-                        var startIndexHwd = indentedLine.IndexOf(Ether) + Ether.Length;
+                        var startIndexHwd = indentedLine.IndexOf(ether) + ether.Length;
                         adapter.MacAddress = indentedLine.Substring(startIndexHwd, 17).Trim();
                     }
 
@@ -221,7 +218,7 @@
                 if (wlanInfo != null)
                 {
                     adapter.IsWireless = true;
-                    var essidParts = wlanInfo.Split(new string[] { EssidTag }, StringSplitOptions.RemoveEmptyEntries);
+                    var essidParts = wlanInfo.Split(new[] { EssidTag }, StringSplitOptions.RemoveEmptyEntries);
                     if (essidParts.Length >= 2)
                     {
                         adapter.AccessPointName = essidParts[1].Replace("\"", string.Empty).Trim();
@@ -246,7 +243,7 @@
         /// </summary>
         /// <param name="indentedLine">The indented line.</param>
         /// <param name="tagName">Name of the tag.</param>
-        /// <returns>The value after the tag identifier</returns>
+        /// <returns>The value after the tag identifier.</returns>
         private static string ParseOutputTagFromLine(string indentedLine, string tagName)
         {
             if (indentedLine.IndexOf(tagName) < 0)
@@ -257,10 +254,10 @@
             for (var c = startIndex; c < indentedLine.Length; c++)
             {
                 var currentChar = indentedLine[c];
-                if (char.IsPunctuation(currentChar) || char.IsLetterOrDigit(currentChar))
-                    builder.Append(currentChar);
-                else
+                if (!char.IsPunctuation(currentChar) && !char.IsLetterOrDigit(currentChar))
                     break;
+                
+                builder.Append(currentChar);
             }
 
             return builder.ToString();

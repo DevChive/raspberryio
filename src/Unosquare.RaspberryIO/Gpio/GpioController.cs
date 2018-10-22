@@ -1,6 +1,5 @@
 ﻿namespace Unosquare.RaspberryIO.Gpio
 {
-    using Computer;
     using Native;
     using Swan;
     using Swan.Abstractions;
@@ -15,7 +14,7 @@
     /// Represents a singleton of the Raspberry Pi GPIO controller
     /// as an IReadOnlyCollection of GpioPins
     /// Low level operations are accomplished by using the Wiring Pi library.
-    /// Use the Instance property to access the singleton's instance
+    /// Use the Instance property to access the singleton's instance.
     /// </summary>
     public sealed class GpioController : SingletonBase<GpioController>, IReadOnlyCollection<GpioPin>
     {
@@ -23,10 +22,7 @@
 
         private const string WiringPiCodesEnvironmentVariable = "WIRINGPI_CODES";
         private static readonly object SyncRoot = new object();
-        private readonly ReadOnlyCollection<GpioPin> PinCollection;
-        private readonly ReadOnlyDictionary<int, GpioPin> HeaderP1Pins;
-        private readonly ReadOnlyDictionary<int, GpioPin> HeaderP5Pins;
-        private readonly Dictionary<WiringPiPin, GpioPin> PinsByWiringPiPinNumber = new Dictionary<WiringPiPin, GpioPin>();
+        private readonly Dictionary<WiringPiPin, GpioPin> _pinsByWiringPiPinNumber = new Dictionary<WiringPiPin, GpioPin>();
 
         #endregion
 
@@ -39,7 +35,7 @@
         /// <exception cref="Exception">Unable to initialize the GPIO controller.</exception>
         private GpioController()
         {
-            if (PinCollection != null)
+            if (Pins != null)
                 return;
 
             if (IsInitialized == false)
@@ -86,17 +82,17 @@
 
             #endregion
 
-            PinCollection = new ReadOnlyCollection<GpioPin>(PinsByWiringPiPinNumber.Values.ToArray());
-            var headerP1 = new Dictionary<int, GpioPin>(PinCollection.Count);
-            var headerP5 = new Dictionary<int, GpioPin>(PinCollection.Count);
-            foreach (var pin in PinCollection)
+            Pins = new ReadOnlyCollection<GpioPin>(_pinsByWiringPiPinNumber.Values.ToArray());
+            var headerP1 = new Dictionary<int, GpioPin>(Pins.Count);
+            var headerP5 = new Dictionary<int, GpioPin>(Pins.Count);
+            foreach (var pin in Pins)
             {
                 var target = pin.Header == GpioHeader.P1 ? headerP1 : headerP5;
                 target[pin.HeaderPinNumber] = pin;
             }
 
-            HeaderP1Pins = new ReadOnlyDictionary<int, GpioPin>(headerP1);
-            HeaderP5Pins = new ReadOnlyDictionary<int, GpioPin>(headerP5);
+            HeaderP1 = new ReadOnlyDictionary<int, GpioPin>(headerP1);
+            HeaderP5 = new ReadOnlyDictionary<int, GpioPin>(headerP5);
         }
 
         /// <summary>
@@ -116,10 +112,11 @@
             }
         }
 
+        /// <inheritdoc />
         /// <summary>
         /// Gets the number of registered pins in the controller.
         /// </summary>
-        public int Count => PinCollection.Count;
+        public int Count => Pins.Count;
 
         #endregion
 
@@ -133,19 +130,19 @@
         /// <summary>
         /// Gets a red-only collection of all registered pins.
         /// </summary>
-        public ReadOnlyCollection<GpioPin> Pins => PinCollection;
+        public ReadOnlyCollection<GpioPin> Pins { get; }
 
         /// <summary>
         /// Provides all the pins on Header P1 of the Pi as a lookup by physical header pin number.
         /// This header is the main header and it is the one commonly used.
         /// </summary>
-        public ReadOnlyDictionary<int, GpioPin> HeaderP1 => HeaderP1Pins;
+        public ReadOnlyDictionary<int, GpioPin> HeaderP1 { get; }
 
         /// <summary>
         /// Provides all the pins on Header P5 of the Pi as a lookup by physical header pin number.
         /// This header is the secondary header and it is rarely used.
         /// </summary>
-        public ReadOnlyDictionary<int, GpioPin> HeaderP5 => HeaderP5Pins;
+        public ReadOnlyDictionary<int, GpioPin> HeaderP5 { get; }
 
         #endregion
 
@@ -327,8 +324,8 @@
         /// The <see cref="GpioPin"/>.
         /// </value>
         /// <param name="pinNumber">The pin number.</param>
-        /// <returns>A reference to the GPIO pin</returns>
-        public GpioPin this[WiringPiPin pinNumber] => PinsByWiringPiPinNumber[pinNumber];
+        /// <returns>A reference to the GPIO pin.</returns>
+        public GpioPin this[WiringPiPin pinNumber] => _pinsByWiringPiPinNumber[pinNumber];
 
         /// <summary>
         /// Gets the <see cref="GpioPin"/> with the specified pin number.
@@ -337,7 +334,7 @@
         /// The <see cref="GpioPin"/>.
         /// </value>
         /// <param name="pinNumber">The pin number.</param>
-        /// <returns>A reference to the GPIO pin</returns>
+        /// <returns>A reference to the GPIO pin.</returns>
         public GpioPin this[P1 pinNumber] => HeaderP1[(int)pinNumber];
 
         /// <summary>
@@ -347,7 +344,7 @@
         /// The <see cref="GpioPin"/>.
         /// </value>
         /// <param name="pinNumber">The pin number.</param>
-        /// <returns>A reference to the GPIO pin</returns>
+        /// <returns>A reference to the GPIO pin.</returns>
         public GpioPin this[P5 pinNumber] => HeaderP5[(int)pinNumber];
 
         /// <summary>
@@ -358,8 +355,8 @@
         /// The <see cref="GpioPin"/>.
         /// </value>
         /// <param name="wiringPiPinNumber">The pin number as defined by Wiring Pi. This is not the header pin number as pin number in headers are obvoisly repeating.</param>
-        /// <returns>A reference to the GPIO pin</returns>
-        /// <exception cref="IndexOutOfRangeException">When the pin index is not found</exception>
+        /// <returns>A reference to the GPIO pin.</returns>
+        /// <exception cref="IndexOutOfRangeException">When the pin index is not found.</exception>
         public GpioPin this[int wiringPiPinNumber]
         {
             get
@@ -367,7 +364,7 @@
                 if (Enum.IsDefined(typeof(WiringPiPin), wiringPiPinNumber) == false)
                     throw new IndexOutOfRangeException($"Pin {wiringPiPinNumber} is not registered in the GPIO controller.");
 
-                return PinsByWiringPiPinNumber[(WiringPiPin)wiringPiPinNumber];
+                return _pinsByWiringPiPinNumber[(WiringPiPin)wiringPiPinNumber];
             }
         }
 
@@ -397,11 +394,8 @@
         /// </summary>
         /// <param name="group">The group.</param>
         /// <param name="value">The value.</param>
-        /// <returns>The awaitable task</returns>
-        public Task SetPadDriveAsync(int group, int value)
-        {
-            return Task.Run(() => { SetPadDrive(group, value); });
-        }
+        /// <returns>The awaitable task.</returns>
+        public Task SetPadDriveAsync(int group, int value) => Task.Run(() => { SetPadDrive(group, value); });
 
         /// <summary>
         /// This writes the 8-bit byte supplied to the first 8 GPIO pins.
@@ -409,7 +403,7 @@
         /// although it still takes two write operations to the Pi’s GPIO hardware.
         /// </summary>
         /// <param name="value">The value.</param>
-        /// <exception cref="InvalidOperationException">PinMode</exception>
+        /// <exception cref="InvalidOperationException">PinMode.</exception>
         public void WriteByte(byte value)
         {
             lock (SyncRoot)
@@ -430,19 +424,16 @@
         /// although it still takes two write operations to the Pi’s GPIO hardware.
         /// </summary>
         /// <param name="value">The value.</param>
-        /// <returns>The awaitable task</returns>
-        public Task WriteByteAsync(byte value)
-        {
-            return Task.Run(() => { WriteByte(value); });
-        }
+        /// <returns>The awaitable task.</returns>
+        public Task WriteByteAsync(byte value) => Task.Run(() => { WriteByte(value); });
 
         /// <summary>
         /// This reads the 8-bit byte supplied to the first 8 GPIO pins.
         /// It’s the fastest way to get all 8 bits at once to a particular value.
-        /// Please note this function is undocumented and unsopported
+        /// Please note this function is undocumented and unsupported.
         /// </summary>
-        /// <returns>A byte from the GPIO</returns>
-        /// <exception cref="InvalidOperationException">PinMode</exception>
+        /// <returns>A byte from the GPIO.</returns>
+        /// <exception cref="InvalidOperationException">PinMode.</exception>
         public byte ReadByte()
         {
             lock (SyncRoot)
@@ -461,13 +452,10 @@
         /// <summary>
         /// This reads the 8-bit byte supplied to the first 8 GPIO pins.
         /// It’s the fastest way to get all 8 bits at once to a particular value.
-        /// Please note this function is undocumented and unsopported
+        /// Please note this function is undocumented and unsupported.
         /// </summary>
-        /// <returns>A byte from the GPIO</returns>
-        public Task<byte> ReadByteAsync()
-        {
-            return Task.Run(() => ReadByte());
-        }
+        /// <returns>A byte from the GPIO.</returns>
+        public Task<byte> ReadByteAsync() => Task.Run(() => ReadByte());
 
         #endregion
 
@@ -479,10 +467,7 @@
         /// <returns>
         /// A <see cref="T:System.Collections.Generic.IEnumerator`1" /> that can be used to iterate through the collection.
         /// </returns>
-        public IEnumerator<GpioPin> GetEnumerator()
-        {
-            return PinCollection.GetEnumerator();
-        }
+        public IEnumerator<GpioPin> GetEnumerator() => Pins.GetEnumerator();
 
         /// <summary>
         /// Returns an enumerator that iterates through the collection.
@@ -490,10 +475,7 @@
         /// <returns>
         /// An <see cref="T:System.Collections.IEnumerator" /> object that can be used to iterate through the collection.
         /// </returns>
-        IEnumerator IEnumerable.GetEnumerator()
-        {
-            return PinCollection.GetEnumerator();
-        }
+        IEnumerator IEnumerable.GetEnumerator() => Pins.GetEnumerator();
 
         #endregion
 
@@ -503,14 +485,14 @@
         /// Gets the GPIO pin by BCM pin number.
         /// </summary>
         /// <param name="bcmPinNumber">The BCM pin number.</param>
-        /// <returns>The GPIO pin</returns>
+        /// <returns>The GPIO pin.</returns>
         public GpioPin GetGpioPinByBcmPinNumber(int bcmPinNumber) => this.First(pin => pin.BcmPinNumber == bcmPinNumber);
 
         /// <summary>
         /// Converts the Wirings Pi pin number to the BCM pin number.
         /// </summary>
         /// <param name="wiringPiPinNumber">The wiring pi pin number.</param>
-        /// <returns>The converted pin</returns>
+        /// <returns>The converted pin.</returns>
         internal static int WiringPiToBcmPinNumber(int wiringPiPinNumber)
         {
             lock (SyncRoot)
@@ -523,7 +505,7 @@
         /// Converts the Physical (Header) pin number to BCM pin number.
         /// </summary>
         /// <param name="headerPinNumber">The header pin number.</param>
-        /// <returns>The converted pin</returns>
+        /// <returns>The converted pin.</returns>
         internal static int HaderToBcmPinNumber(int headerPinNumber)
         {
             lock (SyncRoot)
@@ -533,27 +515,27 @@
         }
 
         /// <summary>
-        /// Short-hand method of registering pins
+        /// Short-hand method of registering pins.
         /// </summary>
         /// <param name="pin">The pin.</param>
         private void RegisterPin(GpioPin pin)
         {
-            if (PinsByWiringPiPinNumber.ContainsKey(pin.WiringPiPinNumber) == false)
-                PinsByWiringPiPinNumber[pin.WiringPiPinNumber] = pin;
-            else
+            if (_pinsByWiringPiPinNumber.ContainsKey(pin.WiringPiPinNumber))
                 throw new InvalidOperationException($"Pin {pin.WiringPiPinNumber} has been registered");
+            
+            _pinsByWiringPiPinNumber[pin.WiringPiPinNumber] = pin;
         }
 
         /// <summary>
-        /// Initializes the controller given the initialization mode and pin numbering scheme
+        /// Initializes the controller given the initialization mode and pin numbering scheme.
         /// </summary>
         /// <param name="mode">The mode.</param>
         /// <returns>True when successful.</returns>
         /// <exception cref="PlatformNotSupportedException">
-        /// This library does not support the platform
+        /// This library does not support the platform.
         /// </exception>
-        /// <exception cref="InvalidOperationException">Library was already Initialized</exception>
-        /// <exception cref="ArgumentException">The init mode is invalid</exception>
+        /// <exception cref="InvalidOperationException">Library was already Initialized.</exception>
+        /// <exception cref="ArgumentException">The init mode is invalid.</exception>
         private bool Initialize(ControllerMode mode)
         {
             if (Runtime.OS != Swan.OperatingSystem.Unix)
@@ -565,49 +547,31 @@
                     throw new InvalidOperationException($"Cannot call {nameof(Initialize)} more than once.");
 
                 Environment.SetEnvironmentVariable(WiringPiCodesEnvironmentVariable, "1", EnvironmentVariableTarget.Process);
-                int setpuResult;
+                int setupResult;
 
                 switch (mode)
                 {
                     case ControllerMode.DirectWithWiringPiPins:
                         {
-                            if (SystemInfo.Instance.IsRunningAsRoot == false)
-                            {
-                                throw new PlatformNotSupportedException(
-                                    $"This program must be started with root privileges for mode '{mode}'");
-                            }
-
-                            setpuResult = WiringPi.WiringPiSetup();
+                            setupResult = WiringPi.WiringPiSetup();
                             break;
                         }
 
                     case ControllerMode.DirectWithBcmPins:
                         {
-                            if (SystemInfo.Instance.IsRunningAsRoot == false)
-                            {
-                                throw new PlatformNotSupportedException(
-                                    $"This program must be started with root privileges for mode '{mode}'");
-                            }
-
-                            setpuResult = WiringPi.WiringPiSetupGpio();
+                            setupResult = WiringPi.WiringPiSetupGpio();
                             break;
                         }
 
                     case ControllerMode.DirectWithHeaderPins:
                         {
-                            if (SystemInfo.Instance.IsRunningAsRoot == false)
-                            {
-                                throw new PlatformNotSupportedException(
-                                    $"This program must be started with root privileges for mode '{mode}'");
-                            }
-
-                            setpuResult = WiringPi.WiringPiSetupPhys();
+                            setupResult = WiringPi.WiringPiSetupPhys();
                             break;
                         }
 
                     case ControllerMode.FileStreamWithHardwarePins:
                         {
-                            setpuResult = WiringPi.WiringPiSetupSys();
+                            setupResult = WiringPi.WiringPiSetupSys();
                             break;
                         }
 
@@ -617,7 +581,7 @@
                         }
                 }
 
-                Mode = setpuResult == 0 ? mode : ControllerMode.NotInitialized;
+                Mode = setupResult == 0 ? mode : ControllerMode.NotInitialized;
                 return IsInitialized;
             }
         }

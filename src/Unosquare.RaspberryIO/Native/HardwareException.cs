@@ -11,8 +11,9 @@
     /// <seealso cref="Exception" />
     public class HardwareException : Exception
     {
+        /// <inheritdoc />
         /// <summary>
-        /// Initializes a new instance of the <see cref="HardwareException" /> class.
+        /// Initializes a new instance of the <see cref="T:Unosquare.RaspberryIO.Native.HardwareException" /> class.
         /// </summary>
         /// <param name="errorCode">The error code.</param>
         /// <param name="component">The component.</param>
@@ -23,12 +24,11 @@
 
             try
             {
-                ExtendedMessage = Standard.StrError(errorCode);
+                ExtendedMessage = Standard.Strerror(errorCode);
             }
             catch
             {
-                // TODO: strerror not working great...
-                $"Could not retrieve native error description using {nameof(Standard.StrError)}".Error(Pi.LoggerSource);
+                $"Could not retrieve native error description using {nameof(Standard.Strerror)}".Error(Pi.LoggerSource);
             }
 
             ErrorCode = errorCode;
@@ -64,25 +64,10 @@
         /// </summary>
         /// <param name="className">Name of the class.</param>
         /// <param name="methodName">Name of the method.</param>
-        /// <exception cref="HardwareException">When an error thrown by an API call occurs</exception>
-        public static void Throw(string className, string methodName)
-        {
-            var errno = Marshal.GetLastWin32Error();
-            throw new HardwareException(errno, $"{className}.{methodName}");
-        }
+        /// <exception cref="HardwareException">When an error thrown by an API call occurs.</exception>
+        public static void Throw(string className, string methodName) => throw new HardwareException(Marshal.GetLastWin32Error(), $"{className}.{methodName}");
 
-        /// <summary>
-        /// Returns a <see cref="string" /> that represents this instance.
-        /// </summary>
-        /// <returns>
-        /// A <see cref="string" /> that represents this instance.
-        /// </returns>
-        /// <PermissionSet>
-        ///   <IPermission class="System.Security.Permissions.FileIOPermission, mscorlib, Version=2.0.3600.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" version="1" PathDiscovery="*AllFiles*" />
-        /// </PermissionSet>
-        public override string ToString()
-        {
-            return $"{GetType()}{(string.IsNullOrWhiteSpace(Component) ? string.Empty : $" on {Component}")}: ({ErrorCode}) - {Message}";
-        }
+        /// <inheritdoc />
+        public override string ToString() => $"{GetType()}{(string.IsNullOrWhiteSpace(Component) ? string.Empty : $" on {Component}")}: ({ErrorCode}) - {Message}";
     }
 }

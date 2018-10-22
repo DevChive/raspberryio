@@ -4,7 +4,7 @@
     using System.Diagnostics;
 
     /// <summary>
-    /// Provides access to a high- esolution, time measuring device.
+    /// Provides access to a high-resolution, time measuring device.
     /// </summary>
     /// <seealso cref="Stopwatch" />
     public class HighResolutionTimer : Stopwatch
@@ -12,7 +12,7 @@
         /// <summary>
         /// Initializes a new instance of the <see cref="HighResolutionTimer"/> class.
         /// </summary>
-        /// <exception cref="NotSupportedException">High-resolution timer not available</exception>
+        /// <exception cref="NotSupportedException">High-resolution timer not available.</exception>
         public HighResolutionTimer()
         {
             if (!IsHighResolution)

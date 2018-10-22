@@ -14,12 +14,12 @@
     public sealed class SpiChannel
     {
         /// <summary>
-        /// The minimum frequency of an SPI Channel
+        /// The minimum frequency of an SPI Channel.
         /// </summary>
         public const int MinFrequency = 500000;
 
         /// <summary>
-        /// The maximum frequency of an SPI channel
+        /// The maximum frequency of an SPI channel.
         /// </summary>
         public const int MaxFrequency = 32000000;
 
@@ -42,13 +42,11 @@
         {
             lock (SyncRoot)
             {
-                frequency = frequency.Clamp(MinFrequency, MaxFrequency);
-                var busResult = WiringPi.WiringPiSPISetup((int)channel, frequency);
+                Frequency = frequency.Clamp(MinFrequency, MaxFrequency);
                 Channel = (int)channel;
-                Frequency = frequency;
-                FileDescriptor = busResult;
+                FileDescriptor = WiringPi.WiringPiSPISetup((int)channel, Frequency);
 
-                if (busResult < 0)
+                if (FileDescriptor < 0)
                 {
                     HardwareException.Throw(nameof(SpiChannel), channel.ToString());
                 }
@@ -75,10 +73,10 @@
         public int Frequency { get; }
 
         /// <summary>
-        /// Sends data and simultaneously receives the data in the return buffer
+        /// Sends data and simultaneously receives the data in the return buffer.
         /// </summary>
         /// <param name="buffer">The buffer.</param>
-        /// <returns>The read bytes from the ring-style bus</returns>
+        /// <returns>The read bytes from the ring-style bus.</returns>
         public byte[] SendReceive(byte[] buffer)
         {
             if (buffer == null || buffer.Length == 0)
@@ -97,22 +95,19 @@
         }
 
         /// <summary>
-        /// Sends data and simultaneously receives the data in the return buffer
+        /// Sends data and simultaneously receives the data in the return buffer.
         /// </summary>
         /// <param name="buffer">The buffer.</param>
         /// <returns>
-        /// The read bytes from the ring-style bus
+        /// The read bytes from the ring-style bus.
         /// </returns>
-        public Task<byte[]> SendReceiveAsync(byte[] buffer)
-        {
-            return Task.Run(() => SendReceive(buffer));
-        }
+        public Task<byte[]> SendReceiveAsync(byte[] buffer) => Task.Run(() => SendReceive(buffer));
 
         /// <summary>
         /// Writes the specified buffer the the underlying FileDescriptor.
         /// Do not use this method if you expect data back.
         /// This method is efficient if used in a fire-and-forget scenario
-        /// like sending data over to those long RGB LED strips
+        /// like sending data over to those long RGB LED strips.
         /// </summary>
         /// <param name="buffer">The buffer.</param>
         public void Write(byte[] buffer)
@@ -130,14 +125,11 @@
         /// Writes the specified buffer the the underlying FileDescriptor.
         /// Do not use this method if you expect data back.
         /// This method is efficient if used in a fire-and-forget scenario
-        /// like sending data over to those long RGB LED strips
+        /// like sending data over to those long RGB LED strips.
         /// </summary>
         /// <param name="buffer">The buffer.</param>
-        /// <returns>The awaitable task</returns>
-        public Task WriteAsync(byte[] buffer)
-        {
-            return Task.Run(() => { Write(buffer); });
-        }
+        /// <returns>The awaitable task.</returns>
+        public Task WriteAsync(byte[] buffer) => Task.Run(() => { Write(buffer); });
 
         /// <summary>
         /// Retrieves the spi bus. If the bus channel is not registered it sets it up automatically.
@@ -145,7 +137,7 @@
         /// </summary>
         /// <param name="channel">The channel.</param>
         /// <param name="frequency">The frequency.</param>
-        /// <returns>The usable SPI channel</returns>
+        /// <returns>The usable SPI channel.</returns>
         internal static SpiChannel Retrieve(SpiChannelNumber channel, int frequency)
         {
             lock (SyncRoot)

@@ -5,14 +5,14 @@
     using System;
 
     /// <summary>
-    /// Provides access to timing and threading properties and methods
+    /// Provides access to timing and threading properties and methods.
     /// </summary>
     public class Timing : SingletonBase<Timing>
     {
         /// <summary>
         /// Prevents a default instance of the <see cref="Timing"/> class from being created.
         /// </summary>
-        /// <exception cref="NotSupportedException">Could not initialize the GPIO controller</exception>
+        /// <exception cref="NotSupportedException">Could not initialize the GPIO controller.</exception>
         private Timing()
         {
             // placeholder
@@ -44,10 +44,7 @@
         /// Note that the maximum delay is an unsigned 32-bit integer or approximately 49 days.
         /// </summary>
         /// <param name="value">The value.</param>
-        public static void SleepMilliseconds(uint value)
-        {
-            WiringPi.Delay(value);
-        }
+        public static void SleepMilliseconds(uint value) => WiringPi.Delay(value);
 
         /// <summary>
         /// This causes program execution to pause for at least howLong microseconds.
@@ -59,10 +56,7 @@
         /// especially if using threads.
         /// </summary>
         /// <param name="value">The value.</param>
-        public void SleepMicroseconds(uint value)
-        {
-            WiringPi.DelayMicroseconds(value);
-        }
+        public void SleepMicroseconds(uint value) => WiringPi.DelayMicroseconds(value);
 
         /// <summary>
         /// This attempts to shift your program (or thread in a multi-threaded program) to a higher priority and
@@ -70,7 +64,7 @@
         /// This won’t make your program go any faster, but it will give it a bigger slice of time when other programs
         /// are running. The priority parameter works relative to others – so you can make one program priority 1 and
         /// another priority 2 and it will have the same effect as setting one to 10 and the other to 90
-        /// (as long as no other programs are running with elevated priorities)
+        /// (as long as no other programs are running with elevated priorities).
         /// </summary>
         /// <param name="priority">The priority.</param>
         public void SetThreadPriority(int priority)
@@ -85,7 +79,7 @@
         /// See the manual pages on Posix threads (man pthread) if you need more control over them.
         /// </summary>
         /// <param name="worker">The worker.</param>
-        /// <exception cref="ArgumentNullException">worker</exception>
+        /// <exception cref="ArgumentNullException">worker.</exception>
         public void CreateThread(ThreadWorker worker)
         {
             if (worker == null)
@@ -101,10 +95,7 @@
         /// it will be stalled until the first process has unlocked the same key.
         /// </summary>
         /// <param name="key">The key.</param>
-        public void Lock(ThreadLockKey key)
-        {
-            WiringPi.PiLock((int)key);
-        }
+        public void Lock(ThreadLockKey key) => WiringPi.PiLock((int)key);
 
         /// <summary>
         /// These allow you to synchronize variable updates from your main program to any threads running in your program.
@@ -112,9 +103,6 @@
         /// it will be stalled until the first process has unlocked the same key.
         /// </summary>
         /// <param name="key">The key.</param>
-        public void Unlock(ThreadLockKey key)
-        {
-            WiringPi.PiUnlock((int)key);
-        }
+        public void Unlock(ThreadLockKey key) => WiringPi.PiUnlock((int)key);
     }
 }
